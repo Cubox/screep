@@ -28,7 +28,9 @@ module.exports.loop = function () {
     var closestDamagedStructure = tower.pos.findClosestByRange(
       FIND_STRUCTURES,
       {
-        filter: (structure) => structure.hits < structure.hitsMax,
+        filter: (structure) =>
+          (structure.structureType == STRUCTURE_ROAD || structure.my) &&
+          structure.hits < structure.hitsMax * 0.75,
       }
     );
     if (closestDamagedStructure) {
@@ -42,6 +44,7 @@ module.exports.loop = function () {
     }
   }
 
+  Memory.cpuUsed = Game.cpu.getUsed();
   // Assign roles to creeps
   for (var name in Game.creeps) {
     var creep = Game.creeps[name];
@@ -51,21 +54,39 @@ module.exports.loop = function () {
       );
     }
     Memory.cpuUsed = Game.cpu.getUsed();
-    if (creep.memory.role == "harvester") {
-      roleHarvester.run(creep);
-    }
-    if (creep.memory.role == "upgrader") {
-      roleUpgrader.run(creep);
-    }
-    if (creep.memory.role == "builder") {
-      roleBuilder.run(creep);
-    }
-    if (creep.memory.role == "toRecycle") {
-      roleToRecycle.run(creep);
-    }
-    if (creep.memory.role == "distributor") {
-      roleDistributor.run(creep);
+
+    var harvesters = _.filter(
+      Game.creeps,
+      (creep) => creep.memory.role == "harvester"
+    );
+    if (creep.ticksToLive < creep.body.length * 15) {
+      var closeSpawn = creep.pos.findClosestByPath(FIND_MY_SPAWNS);
+      if (closeSpawn) {
+        creep.say("moving to renew");
+        if (closeSpawn.renewCreep(creep) == ERR_NOT_IN_RANGE) {
+          creep.moveTo(closeSpawn);
+        }
+      }
+    } else if (harvesters.length <= 2) {
+      if (creep.memory.role == "harvester" || creep.memory.role == "builder") {
+        roleHarvester.run(creep);
+      }
+    } else {
+      if (creep.memory.role == "harvester") {
+        roleHarvester.run(creep);
+      }
+      if (creep.memory.role == "upgrader") {
+        roleUpgrader.run(creep);
+      }
+      if (creep.memory.role == "builder") {
+        roleBuilder.run(creep);
+      }
+      if (creep.memory.role == "distributor") {
+        roleDistributor.run(creep);
+      }
+      if (creep.memory.role == "toRecycle") {
+        roleToRecycle.run(creep);
+      }
     }
   }
-
 };

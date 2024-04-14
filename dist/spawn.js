@@ -1,9 +1,20 @@
 function spawn() {
+  if (Game.spawns["Spawn1"].spawning) {
+    var spawningCreep = Game.creeps[Game.spawns["Spawn1"].spawning.name];
+    Game.spawns["Spawn1"].room.visual.text(
+      "🛠️" + spawningCreep.memory.role,
+      Game.spawns["Spawn1"].pos.x + 1,
+      Game.spawns["Spawn1"].pos.y,
+      { align: "left", opacity: 0.8 }
+    );
+    return;
+  }
+
   var creepUnits = {
     harvester: {
-      work: 3,
+      work: 4,
       carry: 4,
-      move: 3,
+      move: 2,
     },
     upgrader: {
       work: 3,
@@ -25,7 +36,7 @@ function spawn() {
     var bodyParts = [];
     for (var part in creepUnits[role]) {
       for (var i = 0; i < creepUnits[role][part]; i++) {
-        bodyParts.push(part.toUpperCase());
+        bodyParts.push(part);
       }
     }
     creepUnits[role] = bodyParts;
@@ -34,9 +45,9 @@ function spawn() {
   var roles = ["harvester", "upgrader", "builder", "distributor"];
   var minCounts = {
     harvester: 6,
-    upgrader: 2,
-    builder: 4,
-    distributor: 4,
+    upgrader: 1,
+    builder: 2,
+    distributor: 2,
   };
 
   // Loop through each role
@@ -72,7 +83,10 @@ function spawn() {
 
       // While the cost is greater than the maximum energy, reduce the most expensive body part
       while (creepCost > maxEnergy) {
-        var maxCostPart = _.maxBy(creepParts, (part) => BODYPART_COST[part]);
+        var maxCostPart = _.reduce(
+          _.filter(creepParts, (part) => part !== MOVE),
+          (max, part) => (BODYPART_COST[max] > BODYPART_COST[part] ? max : part)
+        );
         var maxCostPartCount = _.countBy(creepParts)[maxCostPart];
         if (maxCostPartCount > 1) {
           var maxCostPartIndex = creepParts.indexOf(maxCostPart);
@@ -93,27 +107,18 @@ function spawn() {
         console.log("Spawning new " + role + ": " + newName);
         break;
       } else {
-        console.log(
+        /*         console.log(
           "Failed to spawn new " +
             role +
             ": " +
             newName +
             " (" +
             spawnResult +
-            ")"
-        );
+            ") with body parts: " +
+            creepParts
+        ); */
       }
     }
-  }
-
-  if (Game.spawns["Spawn1"].spawning) {
-    var spawningCreep = Game.creeps[Game.spawns["Spawn1"].spawning.name];
-    Game.spawns["Spawn1"].room.visual.text(
-      "🛠️" + spawningCreep.memory.role,
-      Game.spawns["Spawn1"].pos.x + 1,
-      Game.spawns["Spawn1"].pos.y,
-      { align: "left", opacity: 0.8 }
-    );
   }
 }
 

@@ -1,8 +1,8 @@
 var roleDistributor = {
   /** @param {Creep} creep **/
   run: function (creep) {
-    // If the creep has free capacity in its store
-    if (creep.store.getFreeCapacity() > 0) {
+    // If the creep's store is empty
+    if (creep.store.getUsedCapacity() == 0) {
       // Find dropped energy on the ground
       var droppedEnergy = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
         filter: (resource) =>
@@ -48,10 +48,19 @@ var roleDistributor = {
       });
       // If there are structures that need energy
       if (targets.length > 0) {
-        // Find the structure with the least amount of energy
-        var target = _.min(targets, (structure) =>
-          structure.store.getFreeCapacity(RESOURCE_ENERGY)
+        // Prioritize towers
+        var towers = _.filter(
+          targets,
+          (structure) => structure.structureType == STRUCTURE_TOWER
         );
+        if (towers.length > 0) {
+          target = towers[0];
+        } else {
+          // Find the structure with the least amount of energy
+          var target = _.min(targets, (structure) =>
+            structure.store.getFreeCapacity(RESOURCE_ENERGY)
+          );
+        }
         // Transfer energy to the target structure, move to it if not in range
         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
           creep.moveTo(target, {

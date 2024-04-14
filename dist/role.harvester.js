@@ -19,8 +19,9 @@ var roleHarvester = {
         ).length,
       }));
       // Find the source with the least number of assigned harvesters
-      var leastAssignedSource = _.minBy(sourceCounts, "count");
-      // Assign the creep to the least assigned source
+      var leastAssignedSource = sourceCounts.reduce((min, source) =>
+        source.count < min.count ? source : min
+      );
       creep.memory.sourceId = leastAssignedSource.id;
     }
 

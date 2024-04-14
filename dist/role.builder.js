@@ -41,13 +41,13 @@ var roleBuilder = {
           }
         } else {
           // If no construction sites or structures to repair, upgrade the controller
-          if (
+          /* if (
             creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE
           ) {
             creep.moveTo(creep.room.controller, {
               visualizePathStyle: { stroke: "#ffffff" },
             });
-          }
+          } */
         }
       }
     } else {
